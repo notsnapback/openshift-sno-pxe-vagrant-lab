@@ -378,6 +378,8 @@ You will follow the same process as you did for RHEL 9. You can use Vagrant to c
 
 > If you decide to boot via UEFI make sure the vagrant file includes `"--firmware", "efi",`
 
+> As of VirtualBox 7.1, EFI booting is broken and PXE boot with EFI will not work correctly. To run this project with EFI enabled, you must use VirtualBox 7.0 instead.
+
 1. When you start the PXE Client VM via the `vagrant up` command close the dialog that pops up
 
 ![alt text](images/image.png)
