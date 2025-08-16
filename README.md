@@ -185,6 +185,8 @@ tar -xvf openshift-install-rhel9-amd64.tar.gz
 
 mv oc kubectl /usr/local/bin
 mv openshift-install-fips /usr/local/bin
+
+openshift-install-fips version
 ```
 
 ## Prepare the agent configs
