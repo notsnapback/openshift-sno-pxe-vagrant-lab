@@ -4,6 +4,8 @@ In this lab we will PXE-boot a Single Node OpenShift Cluster between two VMs usi
 
 This lab builds upon the rhel9-pxe-vagrant-lab's PXE-Boot process, which serves as a prerequisite. This lab assumes you already have a PXE Server configured from the previous lab.
 
+Link to previous lab: https://github.com/notsnapback/rhel9-pxe-vagrant-lab/tree/main
+
 ## Prerequisites
 
 - Working PXE server from the previous lab (same network and IPs).
