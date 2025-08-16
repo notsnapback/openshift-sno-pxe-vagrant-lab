@@ -16,7 +16,7 @@ Link to previous lab: https://github.com/notsnapback/rhel9-pxe-vagrant-lab/tree/
 
 **Red Hat Enterprise Linux CoreOS (RHCOS)** is the operating system used for OpenShift control-plane nodes. Worker nodes can be either RHCOS or RHEL, but RHCOS is usually preferred because it’s managed by the cluster and kept consistent across all nodes.
 
-RHCOS is built from RHEL components, but it’s delivered as an image with **controlled immutability**: most of the system isn’t changed by hand on the host. Instead, it’s configured through **Ignition** on first boot and then managed by the cluster’s **Machine Config Operator (MCO)** afterward. The result is simpler, safer lifecycle management—configuration, updates, and upgrades are coordinated by OpenShift rather than applied manually on each node.
+RHCOS is built from RHEL components, but it’s delivered as an image with **controlled immutability**: most of the system isn’t changed by hand on the host. Instead, it’s configured through **Ignition** on first boot and then managed by the cluster’s **Machine Config Operator (MCO)** afterward. This makes lifecycle management simpler and safer. OpenShift coordinates configuration and updates instead of you patching each node by hand.
 
 In this lab we **PXE-boot** the RHCOS installer artifacts (`vmlinuz`, `initrd.img`, and `rootfs.img`) so the node can fetch Ignition data and join the cluster with the desired configuration from day one.
 
@@ -24,7 +24,7 @@ In this lab we **PXE-boot** the RHCOS installer artifacts (`vmlinuz`, `initrd.im
 
 "insert <diagram> here"
 
-**Why DNS here**
+**Why DNS**
 
 - OpenShift expects a few names to resolve:  
   `api.<CLUSTER_NAME>.<BASE_DOMAIN>`, `api-int.<CLUSTER_NAME>.<BASE_DOMAIN>`, and `*.apps.<CLUSTER_NAME>.<BASE_DOMAIN>`.
@@ -124,15 +124,15 @@ dig +short test.apps.sno1.lab.local @<PXE_SERVER_IP>
 
 ## Configure the Forward Proxy
 
-We added a simple forward proxy (Squid) because even though the node was able to reach the Internet, the **cluster components and pods** also needed outbound HTTP/HTTPS during the install. During the installation the cluster components pull the OpenShift release and operator images, the Cluster Version Operator checks for updates, and the Insights Operator talks to `console.redhat.com`, which is why they need internet access. The cluster sends its outbound HTTP/HTTPS traffic through Squid (httpProxy/httpsProxy), while noProxy excludes internal ranges so in-cluster traffic stays direct.
+We added a simple forward proxy (Squid) because even though the node was able to reach the Internet, the **cluster components and pods** also needed outbound HTTP/HTTPS during the install. During the installation the cluster components pull the OpenShift release and operator images, the Cluster Version Operator checks for updates, and the Insights Operator talks to `console.redhat.com`, which is why they need internet access. The cluster sends its outbound HTTP/HTTPS traffic through Squid (httpProxy/httpsProxy), while noProxy excludes internal ranges, so in-cluster traffic stays direct.
 
-Install Squid
+### Install Squid
 
 ```bash
 dnf install -y squid
 ```
 
-Edit /etc/squid/squid.conf (adapt the ranges and IPs to your lab):
+Edit `/etc/squid/squid.conf` (adapt the ranges and IPs to your lab):
 
 ```bash
 vim /etc/squid/squid.conf
@@ -166,11 +166,17 @@ firewall-cmd --reload
 
 ## Get the OpenShift tools
 
-```bash
-# Create an SSH key for cluster access (public key goes into install-config.yaml)
-ssh-keygen
+Create an SSH key for cluster access (The public key will go into the install-config.yaml)
 
-# Download client + installer (RHEL9 builds)
+> **Note:** Make sure to save this key for later
+
+```bash
+ssh-keygen
+```
+
+Download client + installer (RHEL9 builds):
+
+```bash
 wget https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-install-rhel9-amd64.tar.gz
 wget https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux-amd64-rhel9.tar.gz
 
@@ -183,15 +189,20 @@ mv openshift-install-fips /usr/local/bin
 
 ## Prepare the agent configs
 
+Create a directory for the agent config files:
+
 ```bash
 mkdir ocp-pxe
 cd ocp-pxe
-vim install-config.yaml
 ```
 
 Create the install-config.yaml:
 
-This file tells the installer your cluster basics—name and base domain, **single-node** topology (1 control plane, 0 workers), and the **cluster/service/machine** networks. It also sets the cluster’s HTTP(S) proxy for egress, declares `platform: none` (bare-metal style), and includes your **pull secret** and **SSH public key** for access.
+```bash
+vim install-config.yaml
+```
+
+This file tells the installer your cluster basics including the name and base domain, **single-node** topology (1 control plane, 0 workers), and the **cluster/service/machine** networks. It also sets the cluster’s HTTP(S) proxy for egress, declares `platform: none` (bare-metal style), and includes your **pull secret** and **SSH public key** for access.
 
 ```yaml
 apiVersion: v1
@@ -226,11 +237,11 @@ sshKey: |
 
 Create the agent-config.yaml:
 
-This file tells the **agent-based installer** about the host that will form your SNO cluster and exactly how to network it. It pins the PXE NIC by **MAC address**, assigns a **static IP** (`<PXE_CLIENT_IP>`), points DNS to the PXE server, and sets the **rendezvousIP** (the node used to coordinate bootstrap).
-
 ```bash
 vim agent-config.yaml
 ```
+
+This file tells the **agent-based installer** about the host that will form your SNO cluster and exactly how to network it. It pins the PXE NIC by **MAC address**, assigns a **static IP** (`<PXE_CLIENT_IP>`), points DNS to the PXE server, and sets the **rendezvousIP** (the node used to coordinate bootstrap).
 
 ```yaml
 apiVersion: v1beta1
@@ -263,9 +274,9 @@ hosts:
                 prefix-length: 24
 ```
 
-## Generate PXE artifacts with the agent installe
+## Generate PXE artifacts with the agent installer
 
-> If your /tmp doesn't have enough space, pick another directory for temp:
+> (Optional) If your /tmp doesn't have enough space, pick another directory for temp:
 
 ```bash
 mkdir -p /var/lib/ocp-pxe-tmp
@@ -322,7 +333,13 @@ UEFI clients don’t use `pxelinux.0`; they load a UEFI bootloader (`BOOTX64.EFI
 
 Follow these steps to enable PXE booting with UEFI firmware
 
-Add a menu entry to the grub.cfg file
+Add a menu entry to the grub.cfg file:
+
+```bash
+vim /var/lib/tftpboot/redhat/EFI/BOOT/grub.cfg
+```
+
+Enter the follwing:
 
 ```bash
 menuentry 'OpenShift' {
@@ -373,7 +390,7 @@ You will follow the same process as you did for RHEL 9. You can use Vagrant to c
 
 4. Then select one of the UEFI PXEv4 options (select the one that corresponds to the PXE NIC)
 
-## Watch progress & access the cluster (Run these commands from your PXE Server)
+## Watch the progress & access the cluster (Run these commands from your PXE Server)
 
 Track the progress of the installer by running the following command:
 
@@ -402,6 +419,37 @@ ssh -i ~/.ssh/id_rsa core@192.168.20.101
 # Follow key services
 journalctl -b -f -u kubelet
 journalctl -b -f -u release-image.service -u bootkube.service
+```
+
+## Post-Install
+
+### Connect to the cluster from the CLI
+
+> Based on the workflow described in Red Hat’s article: https://developers.redhat.com/articles/2024/04/29/how-install-single-node-openshift-aws?utm_source=chatgpt.com#creating_the_iam_user
+
+You can manage your SNO from the **web console** or the **`oc`** command line. Here’s the easiest way to wire up `oc` without handling kubeconfig files manually.
+
+**Prereqs:** `oc` installed and network access to the API (`https://api.<cluster>.<domain>:6443`).
+
+#### Use the web console’s “Copy login command”
+
+1. Open the OpenShift **web console** and sign in.
+
+2. In the top-right user menu (e.g., **kubeadmin**), click **Copy login command**.
+
+![alt text](images/image-3.png)
+
+3. A new tab opens. Click **Display token** to reveal a ready-to-paste command like:
+
+```bash
+oc login --token=<REDACTED> --server=https://api.<cluster>.<domain>:6443
+```
+
+Paste that into your terminal. Verify:
+
+```bash
+oc whoami
+oc get nodes
 ```
 
 Best of Luck :)
