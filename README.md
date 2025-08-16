@@ -10,6 +10,14 @@ This lab builds upon the rhel9-pxe-vagrant-lab's PXE-Boot process, which serves 
 - VirtualBox + Vagrant installed on your host.
 - RHEL-based PXE server with `httpd`, `tftp-server`, `dhcp-server` configured.
 
+## Background: What is RHCOS (and why we PXE-boot it)
+
+**Red Hat Enterprise Linux CoreOS (RHCOS)** is the operating system used for OpenShift control-plane nodes. Worker nodes can be either RHCOS or RHEL, but RHCOS is usually preferred because it’s managed by the cluster and kept consistent across all nodes.
+
+RHCOS is built from RHEL components, but it’s delivered as an image with **controlled immutability**: most of the system isn’t changed by hand on the host. Instead, it’s configured through **Ignition** on first boot and then managed by the cluster’s **Machine Config Operator (MCO)** afterward. The result is simpler, safer lifecycle management—configuration, updates, and upgrades are coordinated by OpenShift rather than applied manually on each node.
+
+In this lab we **PXE-boot** the RHCOS installer artifacts (`vmlinuz`, `initrd.img`, and `rootfs.img`) so the node can fetch Ignition data and join the cluster with the desired configuration from day one.
+
 ## Topology
 
 "insert <diagram> here"
