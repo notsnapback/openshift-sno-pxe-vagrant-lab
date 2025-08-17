@@ -6,6 +6,8 @@ This lab builds upon the rhel9-pxe-vagrant-lab's PXE-Boot process, which serves 
 
 Link to previous lab: https://github.com/notsnapback/rhel9-pxe-vagrant-lab/tree/main
 
+![alt text](images/image-4.png)
+
 ## Prerequisites
 
 - Working PXE server from the previous lab (same network and IPs).
