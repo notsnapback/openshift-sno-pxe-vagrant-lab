@@ -22,7 +22,7 @@ In this lab we **PXE-boot** the RHCOS installer artifacts (`vmlinuz`, `initrd.im
 
 ## Topology
 
-"insert <diagram> here"
+I'll insert a visual here eventually lol
 
 **Why DNS**
 
