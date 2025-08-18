@@ -459,3 +459,7 @@ oc get nodes
 ```
 
 Best of Luck :)
+
+## References & Additional Informarion:
+
+https://www.redhat.com/en/blog/red-hat-enterprise-linux-coreos-customization
