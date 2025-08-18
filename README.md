@@ -176,6 +176,15 @@ Create an SSH key for cluster access (The public key will go into the install-co
 ssh-keygen
 ```
 
+> You may need to disable **fapolicyd**."The File Access Policy Daemon, fapolicyd, is a service that can be used to help protect a system by limiting which applications have permission to run" - Oracle's Docs. The protection that fapolicyd offers can interfere with the OpenShift installer tool. To disable it run the following below:
+
+```bash
+systemctl stop fapolicyd
+systemctl disable fapolicyd
+```
+
+> Oracle's Documenation on fapolicyd: https://docs.oracle.com/en/operating-systems/oracle-linux/8/fapolicyd/fapolicyd-About.html
+
 Download client + installer (RHEL9 builds):
 
 ```bash

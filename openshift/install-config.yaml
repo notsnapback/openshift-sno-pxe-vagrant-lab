@@ -23,6 +23,6 @@ proxy:
   noProxy: .cluster.local,.svc,localhost,127.0.0.1,10.128.0.0/14,172.30.0.0/16,<PXE_SUBNET>,.lab.local
 platform:
   none: {}
-pullSecret: "<YOUR_PULL_SECRET_JSON>"
+pullSecret: '<YOUR_PULL_SECRET_JSON>'
 sshKey: |
   <YOUR_SSH_PUBLIC_KEY>
