@@ -450,7 +450,7 @@ oc get nodes -A
 # to edit known hosts in case you need to chnage or delete the entries
 vim /root/.ssh/known_hosts
 # The SSH key is the one you put in install-config.yaml
-ssh -i ~/.ssh/id_rsa core@192.168.20.101
+ssh -i ~/.ssh/id_rsa core@<PXE_CLIENT_IP>
 # Follow key services
 journalctl -b -f -u kubelet
 journalctl -b -f -u release-image.service -u bootkube.service
