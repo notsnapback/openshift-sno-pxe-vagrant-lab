@@ -8,6 +8,8 @@ hosts:
     interfaces:
       - name: <PXE_NIC> # PXE intnet
         macAddress: <PXE_MAC_ADDRESS>
+    rootDeviceHints:
+      deviceName: /dev/sda
     networkConfig:
       dns-resolver:
         config:

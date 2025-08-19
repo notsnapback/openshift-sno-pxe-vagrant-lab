@@ -124,6 +124,8 @@ dig +short api-int.sno1.lab.local @<PXE_SERVER_IP>
 dig +short test.apps.sno1.lab.local @<PXE_SERVER_IP>
 ```
 
+> Make sure to update resolv.conf file on the pxe server and add the <PXE_SERVER_IP>, or you could edit your hosts file if you'd prefer
+
 ## Configure the Forward Proxy
 
 We added a simple forward proxy (Squid) because even though the node was able to reach the Internet, the **cluster components and pods** also needed outbound HTTP/HTTPS during the install. During the installation the cluster components pull the OpenShift release and operator images, the Cluster Version Operator checks for updates, and the Insights Operator talks to `console.redhat.com`, which is why they need internet access. The cluster sends its outbound HTTP/HTTPS traffic through Squid (httpProxy/httpsProxy), while noProxy excludes internal ranges, so in-cluster traffic stays direct.
@@ -296,6 +298,17 @@ mkdir -p /var/lib/ocp-pxe-tmp
 export TMPDIR=/var/lib/ocp-pxe-tmp
 ```
 
+Install `nmstatectl` as a prerequisite to build `agent-config.yaml` networkConfig
+
+`nmstatectl` lets you capture or craft the NMState YAML for the **PXE client’s** NIC (the YAML goes under `hosts[].networkConfig` in `agent-config.yaml`).
+
+Run these commands to install it:
+
+```bash
+dnf install -y nmstate
+nmstatectl --version
+```
+
 Generate PXE files:
 
 ```bash
@@ -314,8 +327,8 @@ cp /root/ocp-pxe/boot-artifacts/{agent.x86_64-rootfs.img,agent.x86_64-vmlinuz,ag
 cd /var/lib/tftpboot/pxelinux/images/RHCOS
 
 mv agent.x86_64-rootfs.img rootfs.img
-mv agent.x86_64-vmlinuz     vmlinuz
-mv agent.x86_64-initrd.img  initrd.img
+mv agent.x86_64-vmlinuz vmlinuz
+mv agent.x86_64-initrd.img initrd.img
 
 chmod 755 /var/lib/tftpboot/pxelinux/images/RHCOS
 chmod 644 /var/lib/tftpboot/pxelinux/images/RHCOS/{vmlinuz,initrd.img,rootfs.img}
@@ -323,6 +336,11 @@ chmod 644 /var/lib/tftpboot/pxelinux/images/RHCOS/{vmlinuz,initrd.img,rootfs.img
 # Serve rootfs over HTTP (simplest path)
 cp rootfs.img /var/www/html/
 ls -ltr /var/www/html/
+
+# If the file isn’t world-readable (`644`) or has the wrong SELinux label, Apache returns `403 Forbidden`
+
+chmod 644 /var/www/html/rootfs.img
+restorecon -v /var/www/html/rootfs.img
 ```
 
 ## Add a PXE menu entry (BIOS) in pxelinux.cfg/default to boot the agent image:
@@ -389,7 +407,9 @@ You will follow the same process as you did for RHEL 9. You can use Vagrant to c
 
 > If you decide to boot via UEFI make sure the vagrant file includes `"--firmware", "efi",`
 
-> As of VirtualBox 7.1, EFI booting is broken and PXE boot with EFI will not work correctly. To run this project with EFI enabled, you must use VirtualBox 7.0 instead.
+> **Note:** UEFI PXE booting for OpenShift is not supported in VirtualBox. On version 7.1, UEFI boot fails entirely and never reaches the Assisted Installer. On version 7.0, both BIOS and UEFI modes reach the Assisted Installer but fail during that stage. At this time, the only reliable option is to use BIOS mode on VirtualBox 7.1, or consider another hypervisor if UEFI support is required.
+
+> I kept these instructions in anyway, because in theory UEFI booting would work if VirtualBox supported it better ( Maybe in the near future ¯\_(ツ)_/¯ )
 
 1. When you start the PXE Client VM via the `vagrant up` command close the dialog that pops up
 
