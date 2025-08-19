@@ -409,7 +409,7 @@ You will follow the same process as you did for RHEL 9. You can use Vagrant to c
 
 > **Note:** UEFI PXE booting for OpenShift is not supported in VirtualBox. On version 7.1, UEFI boot fails entirely and never reaches the Assisted Installer. On version 7.0, both BIOS and UEFI modes reach the Assisted Installer but fail during that stage. At this time, the only reliable option is to use BIOS mode on VirtualBox 7.1, or consider another hypervisor if UEFI support is required.
 
-> I kept these instructions in anyway, because in theory UEFI booting would work if VirtualBox supported it better ( Maybe in the near future ¯\_(ツ)_/¯ )
+> I kept these instructions in anyway, because in theory UEFI booting would work if VirtualBox supported it better... maybe in the near future 🤷‍♀️
 
 1. When you start the PXE Client VM via the `vagrant up` command close the dialog that pops up
 
