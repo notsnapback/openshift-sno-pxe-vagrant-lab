@@ -250,6 +250,10 @@ sshKey: |
   <YOUR_SSH_PUBLIC_KEY>
 ```
 
+> Get your `<YOUR_PULL_SECRET_JSON>` from Red Hat’s Hybrid Cloud Console: sign in at https://console.redhat.com → **OpenShift** → **Downloads** → **Red Hat OpenShift pull secret** → **Copy**. You will need a Red Hat Developer account in order to do this.
+
+> Paste it into `install-config.yaml` as a single JSON string. Wrap it in **single quotes** to avoid YAML quoting issues
+
 Create the agent-config.yaml:
 
 ```bash
