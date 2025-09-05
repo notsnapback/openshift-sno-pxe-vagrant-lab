@@ -1,0 +1,27 @@
+default vesamenu.c32
+prompt 1
+timeout 600
+
+display boot.msg
+
+label linux
+  menu label ^Install RHEL 9
+  menu default
+  kernel images/RHEL-9/vmlinuz
+  append initrd=images/RHEL-9/initrd.img ip=dhcp inst.repo=http://<PXE_SERVER_IP>/rhel9/ inst.ks=http://<PXE_SERVER_IP>/rhel-9-ks.cfg
+label rhcos-sno
+  menu label ^Install OpenShift
+  kernel images/RHCOS/vmlinuz
+  append initrd=images/RHCOS/initrd.img nameserver=<PXE_SERVER_IP> ip=dhcp coreos.live.rootfs_url=http://<PXE_SERVER_IP>/rootfs.img ignition.firstboot ignition.platform.id=metal
+label vesa
+  menu label Install system with ^basic video driver
+  kernel images/RHEL-9/vmlinuz
+  append initrd=images/RHEL-9/initrd.img ip=dhcp inst.xdriver=vesa nomodeset inst.repo=http://<PXE_SERVER_IP>/rhel9/
+label rescue
+  menu label ^Rescue installed system
+  kernel images/RHEL-9/vmlinuz
+  append initrd=images/RHEL-9/initrd.img inst.rescue
+  inst.repo=http://<PXE_SERVER_IP>/rhel9/
+label local
+  menu label Boot from ^local drive
+  localboot 0xffff

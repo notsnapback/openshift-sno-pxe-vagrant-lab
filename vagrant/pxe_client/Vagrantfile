@@ -1,0 +1,34 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "generic/alpine310"
+  config.vm.hostname = "pxe-client"
+
+  # Force netboot first
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = 24576
+    vb.cpus = 8
+    vb.customize ["modifyvm", :id,
+      # Enable UEFI firmware so the VM can PXE-boot via UEFI (uses BOOTX64.EFI/GRUB)
+      # "--firmware", "efi",
+
+      "--nic1",       "intnet",
+      "--intnet1",    "pxe-net",
+      "--cableconnected1", "on",
+      "--nicpromisc1", "allow-all",
+
+      # Adapter2 = NAT for SSH
+      # "--nic2",       "nat",
+      # "--cableconnected2", "on",
+
+      # Adapter2 = Bridged to your LAN
+      "--nic2",       "bridged",
+      "--bridgeadapter2", "<BRIDGE_ADAPTER>", # e.g., Intel(R) Wi-Fi 7 BE200 320MHz
+      "--cableconnected2", "on",
+
+      "--boot1", "net",
+      "--boot2", "disk",
+      "--boot3", "dvd"
+    ]
+    vb.gui = true
+  end
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+end

@@ -1,0 +1,30 @@
+apiVersion: v1beta1
+kind: AgentConfig
+metadata:
+  name: <CLUSTER_NAME>
+rendezvousIP: <PXE_CLIENT_IP>
+hosts:
+  - hostname: <CLUSTER_NAME>
+    interfaces:
+      - name: <PXE_NIC> # PXE intnet
+        macAddress: <PXE_MAC_ADDRESS>
+    rootDeviceHints:
+      deviceName: /dev/sda
+    networkConfig:
+      dns-resolver:
+        config:
+          server:
+            - <PXE_SERVER_IP> # your lab DNS (serves *.lab.local)
+          search:
+            - <BASE_DOMAIN>
+      interfaces:
+        - name: <PXE_NIC>
+          type: ethernet
+          state: up
+          mac-address: <PXE_MAC_ADDRESS>
+          ipv4:
+            enabled: true
+            dhcp: false
+            address:
+              - ip: <PXE_CLIENT_IP>
+                prefix-length: 24
